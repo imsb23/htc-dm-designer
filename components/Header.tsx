@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, Search, Activity, BookOpen, X, PenTool, Calculator, Network, BookOpen as BookIcon, Database } from 'lucide-react';
+import { Menu, Search, Activity, BookOpen, X, PenTool, Calculator, Network, BookOpen as BookIcon, Database, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { SearchResult } from '../types';
+import HtcnxtLogo from './HtcnxtLogo';
 
 interface HeaderProps {
   title: string;
@@ -9,6 +10,8 @@ interface HeaderProps {
   onSearch?: (query: string) => void;
   searchResults?: SearchResult[];
   onSelectResult?: (result: SearchResult) => void;
+  isSidebarCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 const getIconForType = (type: string) => {
@@ -22,7 +25,16 @@ const getIconForType = (type: string) => {
     }
 };
 
-const Header: React.FC<HeaderProps> = ({ title, toggleSidebar, onOpenGuide, onSearch, searchResults = [], onSelectResult }) => {
+const Header: React.FC<HeaderProps> = ({ 
+  title, 
+  toggleSidebar, 
+  onOpenGuide, 
+  onSearch, 
+  searchResults = [], 
+  onSelectResult,
+  isSidebarCollapsed = false,
+  onToggleCollapse 
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -64,25 +76,39 @@ const Header: React.FC<HeaderProps> = ({ title, toggleSidebar, onOpenGuide, onSe
   };
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 bg-white border-b border-slate-200 z-20 relative shrink-0">
+    <header className="h-16 flex items-center justify-between px-6 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 z-20 relative shrink-0">
       <div className="flex items-center gap-4 w-full justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button 
                 onClick={toggleSidebar} 
-                className="lg:hidden text-slate-500 hover:text-indigo-600 transition-colors"
+                className="lg:hidden text-slate-500 hover:text-indigo-600 transition-colors p-1"
+                title="Toggle mobile menu"
             >
                 <Menu size={20} />
             </button>
-            <h1 className="text-sm font-bold text-slate-800 truncate tracking-tight uppercase">{title}</h1>
+            {onToggleCollapse && (
+              <button
+                onClick={onToggleCollapse}
+                className="hidden lg:flex items-center justify-center p-1.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-slate-100 border border-slate-200/80 transition-colors cursor-pointer"
+                title={isSidebarCollapsed ? "Expand sidebar (view navigation labels)" : "Collapse sidebar (maximize workspace)"}
+              >
+                {isSidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+              </button>
+            )}
+            <div className="hidden sm:flex items-center">
+              <HtcnxtLogo theme="light" size="sm" />
+            </div>
+            <div className="h-5 w-px bg-slate-200 hidden sm:block"></div>
+            <h1 className="text-xs sm:text-sm font-bold text-slate-800 truncate tracking-tight uppercase">{title}</h1>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="relative hidden sm:block group" ref={searchRef}>
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={14} />
                 <input 
                     type="text" 
-                    placeholder="Search..." 
-                    className="pl-9 pr-10 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white w-48 focus:w-64 transition-all"
+                    placeholder="Search modules & resources..." 
+                    className="pl-9 pr-10 py-1.5 bg-slate-100/80 border border-slate-200/80 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white w-48 focus:w-64 transition-all"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setShowResults(searchTerm.length > 0 && searchResults.length > 0)}

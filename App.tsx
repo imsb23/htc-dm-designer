@@ -13,6 +13,9 @@ import StandaloneDataModeler from './components/StandaloneDataModeler';
 import ProjectDescriber from './components/ProjectDescriber';
 import StandaloneSolutionDocument from './components/StandaloneSolutionDocument';
 import StandaloneCaseStory from './components/StandaloneCaseStory';
+import CopilotPolicyGenerator from './components/CopilotPolicyGenerator';
+import CopilotGlossaryGenerator from './components/CopilotGlossaryGenerator';
+import CopilotRaciGenerator from './components/CopilotRaciGenerator';
 import LoginPage from './components/LoginPage';
 import UserGuide from './components/UserGuide';
 import UserProfileModal from './components/UserProfileModal';
@@ -32,6 +35,7 @@ const App = () => {
   
   const [selectedRequest, setSelectedRequest] = useState<RequestData | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [designCache, setDesignCache] = useState<DesignCache>({});
   const [showGuide, setShowGuide] = useState(false);
   
@@ -74,6 +78,9 @@ const App = () => {
           case 'design-module': return 'Solution Design';
           case 'project-describer': return 'Project Analysis';
           case 'adhoc-estimator': return 'Estimator';
+          case 'policy-generator': return 'Policy Generator';
+          case 'glossary-generator': return 'Business Glossary';
+          case 'raci-generator': return 'RACI Matrix';
           case 'adhoc-architecture': return 'Blueprint Studio';
           case 'data-modeler': return 'Data Modeler';
           case 'data-dictionary': return 'Metadata Dictionary';
@@ -317,8 +324,14 @@ const App = () => {
 
   const getActiveComponent = () => {
       if (activeTabId === 'dashboard') {
+          const dashboardStats = {
+              total: requests.length || 12,
+              inProgress: requests.filter(r => r.status === 'In Progress').length || 3,
+              completed: requests.filter(r => r.status === 'Completed').length || 9
+          };
           return (
             <DashboardView 
+                stats={dashboardStats}
                 requests={requests} 
                 onSelectRequest={handleSelectRequest} 
                 onDeleteRequest={handleDeleteRequest}
@@ -372,6 +385,19 @@ const App = () => {
               return <StandaloneSolutionDocument initialView={activeTab.viewMode === 'create' ? 'landing' : (activeTab.data ? 'dashboard' : 'requests')} initialData={activeTab.data} />;
           case 'case-story':
               return <StandaloneCaseStory />;
+          case 'policy-generator':
+              return (
+                <CopilotPolicyGenerator 
+                  initialIndustry={activeTab.data?.industry} 
+                  initialContext={activeTab.data?.context} 
+                  clientName={activeTab.data?.clientName} 
+                  onNavigateHome={() => setActiveTabId('dashboard')}
+                />
+              );
+          case 'glossary-generator':
+              return <CopilotGlossaryGenerator initialIndustry={activeTab.data?.industry} initialDomain={activeTab.data?.domain} initialContext={activeTab.data?.context} clientName={activeTab.data?.clientName} />;
+          case 'raci-generator':
+              return <CopilotRaciGenerator initialIndustry={activeTab.data?.industry} initialContext={activeTab.data?.context} clientName={activeTab.data?.clientName} />;
           default:
               return null;
       }
@@ -380,9 +406,9 @@ const App = () => {
   if (!isLoggedIn) return <LoginPage onLogin={handleLogin} />;
 
   const getHeaderTitle = () => {
-    if (activeTabId === 'dashboard') return 'System Dashboard';
+    if (activeTabId === 'dashboard') return 'HTC Copilot • Command Center';
     const activeTab = openTabs.find(t => t.id === activeTabId);
-    return activeTab ? activeTab.label : 'DataArch AI Platform';
+    return activeTab ? `${activeTab.label} • HTC Copilot` : 'HTC Copilot';
   };
 
   return (
@@ -418,22 +444,33 @@ const App = () => {
           onOpenProfile={() => setShowProfile(true)}
           isMobileOpen={isMobileOpen}
           onCloseMobile={() => setIsMobileOpen(false)}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
       
       <div className="flex-1 flex flex-col min-w-0 relative z-10 transition-all duration-300">
         <Header 
           title={getHeaderTitle()} 
           toggleSidebar={() => setIsMobileOpen(!isMobileOpen)}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           onOpenGuide={() => setShowGuide(true)}
           onSearch={handleGlobalSearch}
           searchResults={searchResults}
           onSelectResult={handleSelectSearchResult}
         />
         
-        <main className="flex-1 overflow-y-auto relative scroll-smooth p-4 md:p-6 lg:p-8">
-          <UserGuide isOpen={showGuide} onClose={() => setShowGuide(false)} />
+        <main className="flex-1 min-h-0 relative p-3 sm:p-4 md:p-6 flex flex-col overflow-hidden">
+          <UserGuide 
+            isOpen={showGuide} 
+            onClose={() => setShowGuide(false)} 
+            onLaunchModule={(mod) => {
+              handleSwitchTab(mod);
+              setShowGuide(false);
+            }}
+          />
           <UserProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} profile={userProfile} onSave={(p) => setUserProfile(p)} />
-          <div className="h-full rounded-3xl overflow-hidden flat-panel relative shadow-2xl">
+          <div className="flex-1 min-h-0 w-full h-full rounded-3xl overflow-hidden flat-panel relative shadow-2xl flex flex-col">
               {getActiveComponent()}
           </div>
         </main>

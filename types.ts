@@ -1,4 +1,10 @@
 
+export interface DashboardStats {
+  total: number;
+  inProgress: number;
+  completed: number;
+}
+
 export interface RequestData {
   id: string;
   clientName: string;
@@ -249,3 +255,153 @@ export interface SlideContent {
   bulletPoints: string[];
   speakerNotes: string;
 }
+
+// HTC Copilot Accelerator Types
+export interface PolicyRequest {
+  industry: string;
+  generation_type: string;
+  policy_type: string;
+  family_id: string;
+  additional_context?: string;
+}
+
+export interface PolicySection {
+  section_number: string;
+  title: string;
+  description: string;
+  rules_and_controls: string[];
+  compliance_mappings?: string[];
+  enforcement_mechanisms?: string[];
+}
+
+export interface PolicyResponse {
+  artifact_id?: string;
+  policy_id: string;
+  policy_request_id?: string;
+  policy_family_id?: string;
+  file_name?: string;
+  output_path?: string;
+  output_blob_path?: string;
+  title: string;
+  industry: string;
+  generation_type: string;
+  policy_type: string;
+  family_id: string;
+  version: string;
+  effective_date: string;
+  scope: string;
+  purpose: string;
+  executive_summary: string;
+  sections: PolicySection[];
+  governance_roles: { role: string; responsibility: string }[];
+  audit_and_metrics: string[];
+  source?: 'copilot_live' | 'copilot_neural';
+  download_url?: string;
+  blob_urls?: string[];
+}
+
+export interface GlossaryRequest {
+  industry: string;
+  region?: string | null;
+  domain?: string | null;
+  client_name?: string | null;
+  context?: string | null;
+  regulations?: string | null;
+}
+
+export interface GlossaryTerm {
+  term: string;
+  acronym?: string;
+  definition: string;
+  business_domain: string;
+  data_classification: 'Public' | 'Internal' | 'Confidential' | 'Restricted' | 'PII/PHI';
+  steward_role: string;
+  regulations?: string[];
+  related_terms?: string[];
+  synonyms?: string[];
+  calculation_rule?: string;
+}
+
+export interface GlossaryResponse {
+  artifact_id?: string;
+  glossary_id: string;
+  title: string;
+  industry: string;
+  region: string;
+  domain: string;
+  client_name: string;
+  total_terms: number;
+  terms: GlossaryTerm[];
+  source?: 'copilot_live' | 'copilot_neural';
+  download_url?: string;
+  blob_urls?: string[];
+}
+
+export interface RaciRequest {
+  industry: string;
+  additional_context?: string;
+}
+
+export interface RaciMatrixRow {
+  activity_id: string;
+  phase: string;
+  activity_name: string;
+  description: string;
+  roles: {
+    [roleKey: string]: 'R' | 'A' | 'C' | 'I' | '-';
+  };
+}
+
+export interface RaciRoleDefinition {
+  key: string;
+  name: string;
+  category: 'Executive' | 'Governance' | 'Architecture' | 'Engineering' | 'Business' | 'Operations';
+}
+
+export interface RaciResponse {
+  artifact_id?: string;
+  raci_id: string;
+  title: string;
+  industry: string;
+  context_summary: string;
+  roles: RaciRoleDefinition[];
+  matrix: RaciMatrixRow[];
+  guidance_notes: string[];
+  source?: 'copilot_live' | 'copilot_neural';
+  download_url?: string;
+  blob_urls?: string[];
+}
+
+export interface PolicyVersionRecord {
+  version_id: string;
+  version_number: string;
+  created_at: string;
+  author: string;
+  summary: string;
+  html_content: string;
+  word_count?: number;
+  change_type?: 'initial' | 'edit' | 'restore' | 'ai_refine';
+}
+
+export interface PolicyRequestRecord {
+  id: string;
+  policy_request_id?: string;
+  policy_family_id?: string;
+  industry: string;
+  generation_type: 'Master' | 'Specific' | 'master' | 'specific';
+  policy_type?: string;
+  family_id?: string;
+  requirement_context: string;
+  status: 'In Progress' | 'Completed' | 'Failed';
+  created_at: string;
+  file_name?: string;
+  download_url?: string;
+  output_path?: string;
+  output_blob_path?: string;
+  html_content?: string;
+  raw_text?: string;
+  policy_data?: PolicyResponse;
+  versions?: PolicyVersionRecord[];
+}
+
+

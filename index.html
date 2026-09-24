@@ -4,7 +4,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DataArch AI - Enterprise Solution Designer</title>
+    <title>HTC Copilot - Enterprise Solution Designer</title>
+    <meta name="description" content="HTC Copilot with Governance Consulting starter kit, strategic and design kit and developer's technical readymade studio.">
+    <meta property="og:title" content="HTC Copilot - Enterprise Solution Designer">
+    <meta property="og:description" content="HTC Copilot with Governance Consulting starter kit, strategic and design kit and developer's technical readymade studio.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -52,11 +55,32 @@
       .hide-scrollbar::-webkit-scrollbar { display: none; }
       .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       
-      ::-webkit-scrollbar { width: 5px; height: 5px; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb {
         background: #cbd5e1; 
         border-radius: 10px;
+      }
+
+      .editor-scroll-container {
+        scrollbar-width: thin;
+        scrollbar-color: #94a3b8 #e2e8f0;
+      }
+      .editor-scroll-container::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      .editor-scroll-container::-webkit-scrollbar-track {
+        background: #e2e8f0;
+        border-radius: 8px;
+      }
+      .editor-scroll-container::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border-radius: 8px;
+        border: 2px solid #e2e8f0;
+      }
+      .editor-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
       }
 
       button { transition: all 0.2s ease; }

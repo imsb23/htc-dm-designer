@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Download, List, Network, Target, Map, Calculator, ClipboardList, Paperclip, 
   ArrowLeft, Sparkles, BrainCircuit, Rocket, AlertTriangle, CheckCircle, 
-  Clock, Loader, FileUp, Zap, Boxes, DatabaseZap, X, Info
+  Clock, Loader, FileUp, Zap, Boxes, DatabaseZap, X, Info,
+  ShieldCheck, BookOpen, Users
 } from 'lucide-react';
 import { 
     RequestData, DesignData, Question, Requirement, DesignCache, 
@@ -11,6 +12,9 @@ import {
 import ArchitectureCanvas from './ArchitectureCanvas';
 import AiAssistant from './AiAssistant';
 import StandaloneEstimator from './StandaloneEstimator';
+import CopilotPolicyGenerator from './CopilotPolicyGenerator';
+import CopilotGlossaryGenerator from './CopilotGlossaryGenerator';
+import CopilotRaciGenerator from './CopilotRaciGenerator';
 import { 
   generateArchitectureDesign, 
   generateIntelligentQuestionnaire, 
@@ -36,7 +40,7 @@ const SolutionDesignView: React.FC<{
     onDeleteRequest?: any, 
     onBack?: () => void 
 }> = ({ request, designCache, onUpdateDesignCache, onBack }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'architect_flow' | 'requirements' | 'roadmap' | 'estimator' | 'scoping' | 'attachments'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'policy' | 'glossary' | 'raci' | 'architect_flow' | 'requirements' | 'roadmap' | 'estimator' | 'scoping' | 'attachments'>('overview');
   const [status, setStatus] = useState<'idle' | 'thinking' | 'review' | 'accepted'>('idle');
   const [activePattern, setActivePattern] = useState('LANDSCAPE');
   const [currentDesign, setCurrentDesign] = useState<DesignData>({ nodes: [], edges: [] });
@@ -119,6 +123,9 @@ const SolutionDesignView: React.FC<{
 
   const nav = [
       { id: 'overview', label: 'Strategy', icon: Target },
+      { id: 'policy', label: 'Policy Generator', icon: ShieldCheck },
+      { id: 'glossary', label: 'Glossary', icon: BookOpen },
+      { id: 'raci', label: 'RACI Matrix', icon: Users },
       { id: 'architect_flow', label: 'Architect Flow', icon: Network },
       { id: 'estimator', label: 'Estimator', icon: Calculator },
       { id: 'roadmap', label: 'Roadmap', icon: Map },
@@ -333,6 +340,34 @@ const SolutionDesignView: React.FC<{
                )}
             </div>
           </div>
+        )}
+
+        {activeSubTab === 'policy' && (
+            <CopilotPolicyGenerator 
+                embedded={true} 
+                initialIndustry={request?.type || 'Financial Services & Banking'} 
+                initialContext={request?.requirementsPrompt} 
+                clientName={request?.clientName} 
+            />
+        )}
+
+        {activeSubTab === 'glossary' && (
+            <CopilotGlossaryGenerator 
+                embedded={true} 
+                initialIndustry={request?.type || 'Financial Services & Banking'} 
+                initialDomain={request?.product || 'Enterprise Architecture'} 
+                initialContext={request?.requirementsPrompt} 
+                clientName={request?.clientName} 
+            />
+        )}
+
+        {activeSubTab === 'raci' && (
+            <CopilotRaciGenerator 
+                embedded={true} 
+                initialIndustry={request?.type || 'Financial Services & Banking'} 
+                initialContext={request?.requirementsPrompt} 
+                clientName={request?.clientName} 
+            />
         )}
 
         {activeSubTab === 'estimator' && (

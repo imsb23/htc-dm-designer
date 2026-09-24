@@ -8,7 +8,7 @@ interface AiAssistantProps {
 }
 
 const APP_KNOWLEDGE_BASE = `
-SYSTEM IDENTITY: You are the DataArch AI Assistant, an expert embedded within the "DataArch AI" web application.
+SYSTEM IDENTITY: You are the HTC Copilot Assistant, an expert embedded within the "HTC Copilot" web application.
 PLATFORM INTELLIGENCE: You have full awareness of the user's activities across all modules. If they created an architecture in Blueprint Studio, you can reference those entities when answering questions in the Solution Designer.
 
 MODULES & NAVIGATION GUIDANCE:
@@ -35,10 +35,10 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ context }) => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       return saved ? JSON.parse(saved) : [
-        { role: 'model', text: 'Hi! I am the DataArch Assistant. I have a global view of your architectural decisions across all modules. How can I help?' }
+        { role: 'model', text: 'Hi! I am the HTC Copilot Assistant. I have a global view of your architectural decisions across all modules. How can I help?' }
       ];
     } catch (e) {
-      return [{ role: 'model', text: 'Hi! I am the DataArch Assistant. I have a global view of your architectural decisions across all modules. How can I help?' }];
+      return [{ role: 'model', text: 'Hi! I am the HTC Copilot Assistant. I have a global view of your architectural decisions across all modules. How can I help?' }];
     }
   });
 

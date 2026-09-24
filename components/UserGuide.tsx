@@ -1,228 +1,465 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   X, 
+  Search, 
+  Download, 
+  BookOpen, 
+  ShieldCheck, 
+  Compass, 
+  Cpu, 
   Layers, 
-  Calculator, 
-  Network, 
-  PenTool, 
-  BrainCircuit, 
-  Sparkles,
-  Search,
-  Zap,
-  CheckCircle,
-  RefreshCw,
-  BookOpen,
-  Cpu,
-  Info,
-  ShieldAlert
+  ArrowUpRight, 
+  CheckCircle2, 
+  FileText, 
+  Sparkles, 
+  ChevronRight, 
+  ExternalLink,
+  Users,
+  Printer,
+  FileCheck,
+  Building,
+  HelpCircle,
+  Share2,
+  Clock
 } from 'lucide-react';
-import { generateDynamicUserGuide } from '../services/geminiService';
-import { GuideSection } from '../types';
+import { KNOWLEDGE_BASE_ARTICLES, KBArticle } from '../data/knowledgeBaseData';
+import { exportKnowledgeBasePdf } from '../utils/kbPdfExport';
+import HtcnxtLogo from './HtcnxtLogo';
 
 interface UserGuideProps {
   isOpen: boolean;
   onClose: () => void;
+  onLaunchModule?: (moduleId: string) => void;
 }
 
-const CURRENT_APP_FEATURES = `
-1. Cross-Module AI Learning (Global Context Sync): The platform's central intelligence hub tracks all architectural decisions, design patterns, and technical preferences. Decisions made in the Solution Designer are automatically referenced when generating documents or estimates in other modules.
+const UserGuide: React.FC<UserGuideProps> = ({ isOpen, onClose, onLaunchModule }) => {
+  const [selectedArticleId, setSelectedArticleId] = useState<string>('policy-generator');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [isExportingPdf, setIsExportingPdf] = useState<boolean>(false);
+  const [isExportingAllPdf, setIsExportingAllPdf] = useState<boolean>(false);
 
-2. Solution Designer (Design Hub): This core module automates High-Level Design (HLD) synthesis. It accepts multi-modal inputs (RFPs, images, notes) and leverages Gemini 3 Pro Thinking to research external best practices and whitepapers, producing high-precision blueprints, detailed requirements, and scoping logic tailored to specific target audiences.
+  // Grouped Categories
+  const categories = [
+    'All',
+    'Governance Kit',
+    'Strategy and Studio',
+    'Technical Studio',
+    'Enterprise Architecture'
+  ];
 
-3. Project Describer (RFP Intelligence): A deep analysis tool that parses massive RFP/technical specification documents. It identifies executive objectives, technical constraints, implied requirements, and automatically suggests an optimized technology stack based on extracted logic.
+  const filteredArticles = useMemo(() => {
+    return KNOWLEDGE_BASE_ARTICLES.filter(art => {
+      const matchesCategory = selectedCategory === 'All' || art.category === selectedCategory;
+      const matchesSearch = 
+        art.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        art.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        art.capabilities.some(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        art.targetPersonas.some(p => p.toLowerCase().includes(searchTerm.toLowerCase()));
+      return matchesCategory && matchesSearch;
+    });
+  }, [searchTerm, selectedCategory]);
 
-4. Smart Estimator (Effort Modeling): A precision calculator for data implementation projects. It derives workload complexity weights across Master Data Management (MDM), Data Integration (DI), Data Quality (DQ), and Data Governance (DG). It automatically generates market-standard staffing plans and phased delivery roadmaps.
+  const activeArticle: KBArticle = useMemo(() => {
+    return KNOWLEDGE_BASE_ARTICLES.find(a => a.id === selectedArticleId) || KNOWLEDGE_BASE_ARTICLES[0];
+  }, [selectedArticleId]);
 
-5. Blueprint Studio (Architectural Canvas): An advanced diagramming workspace. Users can freehand system flows or use AI Block Synthesis to transform technical descriptions into visual architecture. It supports Mermaid.js for logic-first representation and style-aware visual generation.
-
-6. Metadata Dictionary (Model Browser): Automates the extraction of logical and physical data models from SQL DDL or Excel specifications. It provides an interactive browser for technical attributes, datatypes, and source lineage.
-
-7. Data Quality (Audit Engine): A neural auditing tool that applies the 6-dimension DQ schema (Accuracy, Completeness, etc.) to data structures. It generates automated remediation logic and fix-scripts while identifying sensitive data exposures (PII/SPDI).
-
-8. Solution Doc Pro (Spec Generator): An expert technical specification writer. It normalizes legacy terminology (e.g., mapping IICS to IDMC) and synthesizes comprehensive project documentation including logical models, governance strategies, and artifact registries.
-
-9. Case Story Deck (Presentation Builder): Transforms technical project journeys into high-impact executive slide decks. It synthesizes challenges, solutions, and ROI metrics into a visual narrative for presentations.
-`;
-
-const UserGuide: React.FC<UserGuideProps> = ({ isOpen, onClose }) => {
-  const [loading, setLoading] = useState(true);
-  const [learningStep, setLearningStep] = useState(0); 
-  const [guideData, setGuideData] = useState<GuideSection[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState<string>('All');
-
-  useEffect(() => {
-    if (isOpen) {
-        const cached = localStorage.getItem('ai_user_guide_beta_v1');
-        if (cached) {
-            try {
-                const parsed = JSON.parse(cached);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    setGuideData(parsed);
-                    setLoading(false);
-                    return;
-                }
-            } catch (e) {
-                console.error("Corrupted cache for user guide", e);
-            }
-        }
-        refreshGuide();
+  const handleExportCurrent = async () => {
+    try {
+      setIsExportingPdf(true);
+      await exportKnowledgeBasePdf(activeArticle, false);
+    } catch (err) {
+      console.error('Failed to export article PDF', err);
+    } finally {
+      setIsExportingPdf(false);
     }
-  }, [isOpen]);
-
-  const refreshGuide = async () => {
-      setLoading(true);
-      setLearningStep(1);
-      setTimeout(() => setLearningStep(2), 1500); 
-      setTimeout(() => setLearningStep(3), 3000); 
-
-      try {
-          const sections = await generateDynamicUserGuide(CURRENT_APP_FEATURES);
-          const validatedSections = Array.isArray(sections) ? sections : [];
-          setGuideData(validatedSections);
-          localStorage.setItem('ai_user_guide_beta_v1', JSON.stringify(validatedSections));
-      } catch (e) {
-          console.error("Failed to generate guide", e);
-          setGuideData([]);
-      } finally {
-          setLoading(false);
-          setLearningStep(0);
-      }
   };
 
-  const filteredGuide = useMemo(() => {
-      const data = Array.isArray(guideData) ? guideData : [];
-      return data.filter(section => {
-          const title = section?.title || '';
-          const desc = section?.description || '';
-          const matchesSearch = title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                desc.toLowerCase().includes(searchTerm.toLowerCase());
-          const matchesCategory = activeCategory === 'All' || section.category === activeCategory;
-          return matchesSearch && matchesCategory;
-      });
-  }, [guideData, searchTerm, activeCategory]);
+  const handleExportAll = async () => {
+    try {
+      setIsExportingAllPdf(true);
+      await exportKnowledgeBasePdf(null, true);
+    } catch (err) {
+      console.error('Failed to export full guide PDF', err);
+    } finally {
+      setIsExportingAllPdf(false);
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Governance Kit': return ShieldCheck;
+      case 'Strategy and Studio': return Compass;
+      case 'Technical Studio': return Cpu;
+      default: return Layers;
+    }
+  };
 
   if (!isOpen) return null;
 
-  const categories = ['All', 'Strategy', 'Technical', 'Intelligence'];
-
-  const getIconForSection = (title: string) => {
-      const t = (title || '').toLowerCase();
-      if (t.includes('design')) return PenTool;
-      if (t.includes('describer')) return BookOpen;
-      if (t.includes('estimat')) return Calculator;
-      if (t.includes('arch') || t.includes('flow')) return Network;
-      if (t.includes('learn') || t.includes('intelligence')) return Cpu;
-      if (t.includes('quality') || t.includes('audit')) return ShieldAlert;
-      return Layers;
-  };
-
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/80 backdrop-blur-md animate-fade-in p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden relative border border-slate-700/50">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-2xl animate-fade-in">
+      
+      {/* iOS27 Styled Full Modal Canvas */}
+      <div className="bg-slate-50/95 backdrop-blur-3xl rounded-3xl sm:rounded-[2.5rem] border border-white/40 shadow-[0_25px_70px_rgba(0,0,0,0.35)] w-full max-w-7xl max-h-[94vh] h-[92vh] flex flex-col overflow-hidden text-slate-800">
         
-        <div className="bg-slate-900 p-8 text-white relative overflow-hidden shrink-0">
-           <div className="absolute top-0 right-0 p-8 opacity-10"><BrainCircuit size={200} /></div>
-           <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-indigo-600/30 rounded-full blur-3xl"></div>
-           
-           <div className="relative z-10 flex justify-between items-start">
-              <div>
-                 <div className="flex items-center gap-3 mb-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold uppercase backdrop-blur-md">
-                        <Sparkles size={12} /> Global Intelligence Active
-                    </div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-[10px] font-black uppercase tracking-widest backdrop-blur-md">
-                        Beta Version v0.9.1
-                    </div>
-                 </div>
-                 <h2 className="text-3xl font-black mb-2 tracking-tighter italic uppercase">Platform Capability Registry</h2>
-                 <p className="text-indigo-200 text-sm max-w-lg font-medium italic">Detailed breakdown of how DataArch AI synchronizes technical logic across the architecture lifecycle.</p>
+        {/* Top Navigation & Brand Header - Informatica KB Portal Style */}
+        <div className="px-6 py-4 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 flex items-center justify-between gap-4 shrink-0">
+          <div className="flex items-center gap-4">
+            <HtcnxtLogo theme="light" size="sm" />
+            <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-black text-slate-900 tracking-tight">KNOWLEDGE BASE</span>
+                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                  Enterprise Documentation
+                </span>
               </div>
-              <div className="flex gap-2">
-                  <button onClick={refreshGuide} className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors text-indigo-200 hover:text-white" title="Sync Knowledge Base">
-                     <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+              <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
+                HTC Copilot Architectural Blueprint, Governance Reference & Capability Catalog
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            {/* Download Complete Guide PDF */}
+            <button
+              onClick={handleExportAll}
+              disabled={isExportingAllPdf}
+              className="hidden md:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all active:scale-95"
+              title="Download entire Knowledge Base as a complete enterprise product document"
+            >
+              <Download size={14} className={isExportingAllPdf ? 'animate-bounce text-indigo-600' : 'text-slate-500'} />
+              <span>{isExportingAllPdf ? 'Generating PDF...' : 'Download Full Product Guide (PDF)'}</span>
+            </button>
+
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              title="Close Documentation Portal"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Main Body: 2-Column Split (Left Navigation & Right Content) */}
+        <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
+          
+          {/* Left Navigation Sidebar (Informatica KB Navigation) */}
+          <div className="w-full md:w-80 lg:w-96 bg-white/60 backdrop-blur-xl border-r border-slate-200/80 flex flex-col shrink-0 overflow-hidden">
+            
+            {/* Search Input Box */}
+            <div className="p-4 border-b border-slate-200/60 space-y-3">
+              <div className="relative">
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search articles, capabilities, regulations..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-100/80 border border-slate-200/70 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                />
+                {searchTerm && (
+                  <button 
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X size={13} />
                   </button>
-                  <button onClick={onClose} className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors text-white">
-                     <X size={20} />
-                  </button>
+                )}
               </div>
-           </div>
 
-           <div className="mt-8 flex flex-col md:flex-row gap-4 relative z-10">
-               <div className="relative flex-1">
-                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                   <input type="text" placeholder="Search capabilities..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-bold" />
-               </div>
-               <div className="flex gap-2 overflow-x-auto hide-scrollbar">
-                   {categories.map(cat => (
-                       <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${activeCategory === cat ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800'}`}>
-                           {cat}
-                       </button>
-                   ))}
-               </div>
-           </div>
-        </div>
+              {/* Category Pills (iOS27 Segments) */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-tight transition-all ${
+                      selectedCategory === cat
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'bg-slate-100/70 text-slate-600 hover:bg-slate-200/70'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Beta Notice Banner */}
-        <div className="bg-indigo-50 px-8 py-3 flex items-center gap-3 border-b border-indigo-100">
-            <Info size={16} className="text-indigo-600 shrink-0" />
-            <p className="text-[10px] font-bold text-indigo-700 uppercase tracking-widest">
-                Development Preview: Features labeled with <Sparkles size={10} className="inline mx-0.5" /> utilize Gemini 3 Pro Research capabilities which are currently in early access.
-            </p>
-        </div>
+            {/* Articles List */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
+              <div className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Articles ({filteredArticles.length})
+              </div>
 
-        <div className="flex-1 overflow-y-auto p-8 bg-slate-50 relative custom-scrollbar">
-            {loading ? (
-                <div className="flex flex-col items-center justify-center h-full space-y-6">
-                    <div className="relative">
-                        <div className="w-24 h-24 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin"></div>
-                        <div className="absolute inset-0 flex items-center justify-center"><BrainCircuit size={32} className="text-indigo-600 animate-pulse"/></div>
-                    </div>
-                    <div className="text-center">
-                        <h3 className="text-xl font-bold text-slate-800">Synchronizing Global Learning...</h3>
-                        <p className="text-slate-400 text-sm mt-2 font-medium italic">Building quick-reference documentation from active modules.</p>
-                    </div>
+              {filteredArticles.length === 0 ? (
+                <div className="p-6 text-center text-slate-400 text-xs">
+                  No articles matched your criteria.
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
-                    {filteredGuide.map((section, idx) => {
-                        const Icon = getIconForSection(section.title);
-                        return (
-                            <div key={idx} className="bg-white rounded-3xl border border-slate-200 p-8 hover:shadow-2xl hover:border-indigo-400 transition-all group relative overflow-hidden flex flex-col">
-                                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500"><Icon size={120} /></div>
-                                <div className="relative z-10 flex-1 flex flex-col">
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-colors shadow-sm"><Icon size={28} /></div>
-                                        <span className="text-[10px] uppercase font-black text-slate-400 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 tracking-widest">{section.category}</span>
-                                    </div>
-                                    <h3 className="text-2xl font-black text-slate-800 mb-3 tracking-tight uppercase italic">{section.title}</h3>
-                                    <p className="text-sm text-slate-600 leading-relaxed mb-6 font-medium italic">{section.description}</p>
-                                    
-                                    <div className="space-y-4 mb-8">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Core Capabilities</p>
-                                        {Array.isArray(section.features) && section.features.map((feat, i) => (
-                                            <div key={i} className="flex items-start gap-3 text-xs text-slate-700 font-bold group-hover:text-slate-900">
-                                                <CheckCircle size={14} className="text-emerald-500 mt-0.5 shrink-0" /> 
-                                                {feat}
-                                            </div>
-                                        ))}
-                                    </div>
-                                    
-                                    <div className="mt-auto bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 flex gap-4 items-start ring-1 ring-indigo-50">
-                                        <Zap size={20} className="text-amber-500 mt-1 shrink-0" />
-                                        <div>
-                                            <div className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Architecture Habit</div>
-                                            <p className="text-xs text-indigo-900 font-black italic leading-relaxed">"{section.bestPractice}"</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
+              ) : (
+                filteredArticles.map((art) => {
+                  const isSelected = art.id === activeArticle.id;
+                  const Icon = getCategoryIcon(art.category);
+
+                  return (
+                    <button
+                      key={art.id}
+                      onClick={() => setSelectedArticleId(art.id)}
+                      className={`w-full text-left p-3 rounded-2xl transition-all flex items-start gap-3 group ${
+                        isSelected 
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' 
+                          : 'hover:bg-white hover:shadow-sm text-slate-700'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-xl shrink-0 ${
+                        isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:text-indigo-600'
+                      }`}>
+                        <Icon size={16} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <span className={`text-[9px] font-bold uppercase tracking-wider ${
+                            isSelected ? 'text-indigo-200' : 'text-slate-400'
+                          }`}>
+                            {art.category}
+                          </span>
+                          <span className={`text-[9px] font-medium ${
+                            isSelected ? 'text-indigo-200' : 'text-slate-400'
+                          }`}>
+                            {art.readTime}
+                          </span>
+                        </div>
+                        <h4 className={`text-xs font-bold truncate ${
+                          isSelected ? 'text-white' : 'text-slate-900 group-hover:text-indigo-600'
+                        }`}>
+                          {art.title}
+                        </h4>
+                        <p className={`text-[11px] line-clamp-1 mt-0.5 ${
+                          isSelected ? 'text-indigo-100' : 'text-slate-500'
+                        }`}>
+                          {art.summary}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Sidebar Bottom Status */}
+            <div className="p-3.5 bg-slate-100/50 border-t border-slate-200/60 text-center">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                HTC Copilot v2.4 Enterprise Production
+              </span>
+            </div>
+          </div>
+
+          {/* Right Main Content Pane (Informatica KB Article Layout) */}
+          <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 custom-scrollbar bg-white/70 backdrop-blur-md">
+            
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+              <span>Knowledge Base</span>
+              <ChevronRight size={13} />
+              <span className="text-slate-600">{activeArticle.category}</span>
+              <ChevronRight size={13} />
+              <span className="text-indigo-600">{activeArticle.title}</span>
+            </div>
+
+            {/* Article Top Header Card */}
+            <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 text-white shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+              <div className="relative z-10 space-y-4">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <span className="px-2.5 py-1 rounded-full bg-red-600/90 text-white text-[9px] font-black uppercase tracking-widest shadow-sm">
+                    {activeArticle.category}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-[9px] font-black uppercase tracking-widest border border-indigo-500/30">
+                    {activeArticle.badge}
+                  </span>
+                  <span className="text-slate-400 text-xs flex items-center gap-1.5 ml-auto">
+                    <Clock size={13} /> {activeArticle.readTime} • {activeArticle.version}
+                  </span>
                 </div>
-            )}
+
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
+                  {activeArticle.title}
+                </h1>
+
+                {/* Target Personas */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    Audience:
+                  </span>
+                  {activeArticle.targetPersonas.map((persona, i) => (
+                    <span 
+                      key={i}
+                      className="px-2.5 py-0.5 rounded-lg bg-white/10 text-slate-200 text-[11px] font-medium border border-white/10"
+                    >
+                      {persona}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-white/10">
+                  <button
+                    onClick={handleExportCurrent}
+                    disabled={isExportingPdf}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-900 bg-white hover:bg-slate-100 shadow-md transition-all active:scale-95"
+                  >
+                    <Download size={14} className={isExportingPdf ? 'animate-bounce text-indigo-600' : 'text-slate-700'} />
+                    <span>{isExportingPdf ? 'Exporting PDF...' : 'Download Article Spec (PDF)'}</span>
+                  </button>
+
+                  {activeArticle.relatedModuleTab && onLaunchModule && (
+                    <button
+                      onClick={() => onLaunchModule(activeArticle.relatedModuleTab!)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-900/30 transition-all active:scale-95"
+                    >
+                      <span>Launch Module in Workspace</span>
+                      <ArrowUpRight size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Executive Summary Card */}
+            <div className="p-6 rounded-2xl bg-indigo-50/60 border border-indigo-100/90 shadow-sm space-y-2">
+              <h3 className="text-xs font-black text-indigo-900 uppercase tracking-wider flex items-center gap-2">
+                <Sparkles size={14} className="text-indigo-600" /> Executive Overview
+              </h3>
+              <p className="text-sm text-slate-700 leading-relaxed font-normal">
+                {activeArticle.summary}
+              </p>
+            </div>
+
+            {/* Section 1: Business Value & Commercial Impact */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest border-l-4 border-indigo-600 pl-3">
+                1. Business Value & Commercial Impact
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {activeArticle.businessValue.map((bv, idx) => (
+                  <div key={idx} className="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <CheckCircle2 size={13} />
+                    </div>
+                    <span className="text-xs text-slate-700 leading-relaxed font-medium">{bv}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 2: Core Enterprise Capabilities */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest border-l-4 border-indigo-600 pl-3">
+                2. Core Technical Capabilities
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {activeArticle.capabilities.map((cap, idx) => (
+                  <div key={idx} className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:border-indigo-200 transition-all space-y-2">
+                    <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                      {cap.name}
+                    </h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      {cap.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 3: End-to-End Operational Workflow */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest border-l-4 border-indigo-600 pl-3">
+                3. End-to-End Operational Workflow
+              </h3>
+              <div className="space-y-2.5">
+                {activeArticle.workflow.map((wf, idx) => (
+                  <div key={idx} className="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm flex items-start gap-3.5">
+                    <div className="w-6 h-6 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-black flex items-center justify-center shrink-0">
+                      0{idx + 1}
+                    </div>
+                    <span className="text-xs text-slate-700 font-medium leading-relaxed pt-0.5">{wf}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 4: Deliverables & Governing Standards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Deliverables */}
+              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                  <FileText size={15} className="text-indigo-600" /> Generated Deliverables
+                </h4>
+                <ul className="space-y-2 text-xs text-slate-600">
+                  {activeArticle.deliverables.map((deliv, idx) => (
+                    <li key={idx} className="flex items-center gap-2 font-medium">
+                      <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                      <span>{deliv}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Governing Standards */}
+              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                  <ShieldCheck size={15} className="text-indigo-600" /> Governing Frameworks & Standards
+                </h4>
+                <ul className="space-y-2 text-xs text-slate-600">
+                  {activeArticle.standards.map((std, idx) => (
+                    <li key={idx} className="flex items-center gap-2 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0"></span>
+                      <span>{std}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Section 5: Best Practices & Guardrails */}
+            <div className="p-5 rounded-2xl bg-slate-900 text-slate-100 shadow-md space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                Enterprise Best Practices & Architectural Guardrails
+              </h4>
+              <ul className="space-y-2 text-xs text-slate-300">
+                {activeArticle.bestPractices.map((bp, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5">
+                    <span className="text-amber-400 font-bold mt-0.5">•</span>
+                    <span className="leading-relaxed">{bp}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Footer Bottom Bar */}
+            <div className="pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+              <div className="flex items-center gap-2">
+                <HtcnxtLogo theme="light" size="sm" />
+                <span>• Official Enterprise Documentation Portal</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleExportCurrent}
+                  className="font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                >
+                  <Printer size={13} /> Export PDF Specification
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
+
       </div>
     </div>
   );

@@ -8,6 +8,14 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        proxy: {
+          '/api/copilot': {
+            target: 'http://172.208.104.111:7002',
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/api\/copilot/, ''),
+            timeout: 60000
+          }
+        }
       },
       plugins: [react()],
       define: {

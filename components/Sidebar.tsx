@@ -114,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <div className="flex flex-col flex-1">
                <div className="flex items-center gap-2">
-                 <span className="font-bold text-base text-white tracking-tight leading-none">DataArch<span className="text-indigo-400">AI</span></span>
+                 <span className="font-bold text-base text-white tracking-tight leading-none">HTC <span className="text-indigo-400">Copilot</span></span>
                  <span className="bg-indigo-500/20 text-indigo-400 text-[8px] px-1.5 py-0.5 rounded border border-indigo-500/30 font-black uppercase tracking-tighter">BETA</span>
                </div>
                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Enterprise</span>
