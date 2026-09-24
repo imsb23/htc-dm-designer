@@ -18,6 +18,23 @@ export default defineConfig(({ mode }) => {
         }
       },
       plugins: [react()],
+      build: {
+        outDir: 'dist',
+        sourcemap: false,
+        chunkSizeWarningLimit: 2000,
+        rollupOptions: {
+          output: {
+            manualChunks(id) {
+              if (id.includes('node_modules')) {
+                if (id.includes('recharts')) return 'vendor-recharts';
+                if (id.includes('xlsx')) return 'vendor-xlsx';
+                if (id.includes('jspdf') || id.includes('docx')) return 'vendor-docs';
+                return 'vendor';
+              }
+            }
+          }
+        }
+      },
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)

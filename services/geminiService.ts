@@ -229,7 +229,7 @@ export const synthesizeIntelligentArchitecture = async (
         : "";
 
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-3.8-flash',
         contents: {
             parts: [
                 { text: `System Identity: Expert Enterprise Data Architect.
@@ -275,7 +275,7 @@ export const synthesizeIntelligentArchitecture = async (
 export const generateArchitectureDesign = async (context: string, pattern: string): Promise<{ design: DesignData, groundingSources: any[] }> => {
     const globalCtx = getGlobalIntelligence();
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-3.8-flash',
         contents: `Expert Solution Architect. 
         Global Intelligence Context: ${globalCtx}
         Requirement Data (RFP/SOW Extract): ${context}. 
@@ -334,7 +334,7 @@ export const generateArchitectureDesign = async (context: string, pattern: strin
  */
 export const generateMermaidCode = async (prompt: string, currentCode: string): Promise<string> => {
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: `Expert Solution Architect. 
         Task: Refine or generate Mermaid.js diagram code based on architectural requirements.
         
@@ -400,7 +400,7 @@ export const generateProcessArchitecture = async (ctx: string, p: string) => (aw
 export const generateProjectStatistics = async (ctx: string): Promise<ProjectStats> => {
     const globalCtx = getGlobalIntelligence();
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-3.8-flash',
         contents: `Analyze implementation strategy.
         Requirement: ${ctx}
         Context: ${globalCtx}`,
@@ -414,7 +414,7 @@ export const generateProjectStatistics = async (ctx: string): Promise<ProjectSta
 
 export const generateFutureRoadmap = async (ctx: string): Promise<RoadmapPhase[]> => {
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: `Generate a 4-phase delivery roadmap for: ${ctx}`,
         config: { responseMimeType: "application/json" }
     }));
@@ -430,7 +430,7 @@ export const generateFutureRoadmap = async (ctx: string): Promise<RoadmapPhase[]
 
 export const generateConsolidatedEstimation = async (prompt: string): Promise<{ drivers: Record<string, number>, resources: Resource[], timeline: TimelineItem[] }> => {
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-3.8-flash',
         contents: prompt,
         config: { responseMimeType: "application/json" }
     }));
@@ -441,7 +441,7 @@ export const analyzeAndLearn = async (a:any,b:any,c:any,d:any,e:any) => {};
 
 export const sendChatMessage = async (history: any[], input: string, context: string): Promise<string> => {
     const chat = getAI().chats.create({ 
-        model: 'gemini-3.5-flash', 
+        model: 'gemini-3.8-flash', 
         config: { systemInstruction: context } 
     });
     const response: GenerateContentResponse = await callWithRetry(() => chat.sendMessage({ message: input }));
@@ -450,7 +450,7 @@ export const sendChatMessage = async (history: any[], input: string, context: st
 
 export const generateProjectUnderstanding = async (context: string): Promise<ProjectDescriptionResponse> => {
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: `Summarize technical spec: ${context}`,
         config: { responseMimeType: "application/json" }
     }));
@@ -459,7 +459,7 @@ export const generateProjectUnderstanding = async (context: string): Promise<Pro
 
 export const generateDynamicUserGuide = async (features: string): Promise<GuideSection[]> => {
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: `User Guide for: ${features}`,
         config: { responseMimeType: "application/json" }
     }));
@@ -477,7 +477,7 @@ export const generateEstimation = async (ctx: string, type: string) => {
     return res.drivers;
 };
 export const generateProjectRequirements = async (ctx: string, type: string, audience: string[]): Promise<Requirement[]> => {
-    const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({ model: 'gemini-3.5-flash', contents: `Requirements: ${ctx}`, config: { responseMimeType: "application/json" } }));
+    const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({ model: 'gemini-3.8-flash', contents: `Requirements: ${ctx}`, config: { responseMimeType: "application/json" } }));
     const parsed = safeJsonParse<any>(response.text, []);
     if (Array.isArray(parsed)) return parsed;
     if (parsed && typeof parsed === 'object') {
@@ -487,7 +487,7 @@ export const generateProjectRequirements = async (ctx: string, type: string, aud
     return [];
 };
 export const generateIntelligentQuestionnaire = async (ctx: string, type: string, audience: string[]): Promise<Question[]> => {
-    const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({ model: 'gemini-3.5-flash', contents: `Scoping questions: ${ctx}`, config: { responseMimeType: "application/json" } }));
+    const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({ model: 'gemini-3.8-flash', contents: `Scoping questions: ${ctx}`, config: { responseMimeType: "application/json" } }));
     const parsed = safeJsonParse<any>(response.text, []);
     if (Array.isArray(parsed)) return parsed;
     if (parsed && typeof parsed === 'object') {
@@ -497,7 +497,7 @@ export const generateIntelligentQuestionnaire = async (ctx: string, type: string
     return [];
 };
 export const generateInitiationChecklist = async (ctx: string, type: string, audience: string[]): Promise<InitiationItem[]> => {
-    const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({ model: 'gemini-3.5-flash', contents: `Initiation Checklist: ${ctx}`, config: { responseMimeType: "application/json" } }));
+    const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({ model: 'gemini-3.8-flash', contents: `Initiation Checklist: ${ctx}`, config: { responseMimeType: "application/json" } }));
     const parsed = safeJsonParse<any>(response.text, []);
     if (Array.isArray(parsed)) return parsed;
     if (parsed && typeof parsed === 'object') {
@@ -509,7 +509,7 @@ export const generateInitiationChecklist = async (ctx: string, type: string, aud
 
 export const generateDataDictionary = async (prompt: string, fileContext: string): Promise<DataDictionaryItem[]> => {
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: `Data Dictionary from: ${fileContext}. Prompt: ${prompt}`,
         config: { responseMimeType: "application/json" }
     }));
@@ -524,7 +524,7 @@ export const generateDataDictionary = async (prompt: string, fileContext: string
 
 export const determineDocumentStrategy = async (prompt: string, context: string): Promise<DocumentStrategy> => {
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: `Strategy for: ${prompt}. Source: ${context}`,
         config: { responseMimeType: "application/json" }
     }));
@@ -533,7 +533,7 @@ export const determineDocumentStrategy = async (prompt: string, context: string)
 
 export const generateDocumentContent = async (sectionTitle: string, context: string, strategyType: string): Promise<string> => {
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-3.8-flash',
         contents: `Write section ${sectionTitle} for ${strategyType}. Source: ${context}`,
     }));
     return response.text || "";
@@ -541,7 +541,7 @@ export const generateDocumentContent = async (sectionTitle: string, context: str
 
 export const analyzePPTStructure = async (context: string): Promise<{ title: string; description: string }[]> => {
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: `PPT Structure for: ${context}`,
         config: { responseMimeType: "application/json" }
     }));
@@ -556,7 +556,7 @@ export const analyzePPTStructure = async (context: string): Promise<{ title: str
 
 export const generateSlideContent = async (slide: { title: string; description: string }, context: string): Promise<SlideContent> => {
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-3.8-flash',
         contents: `Content for slide ${slide.title}. Context: ${context}`,
         config: { responseMimeType: "application/json" }
     }));
@@ -565,7 +565,7 @@ export const generateSlideContent = async (slide: { title: string; description: 
 
 export const generateSolutionDocumentPro = async (projectName: string, context: string): Promise<any> => {
     const response: GenerateContentResponse = await callWithRetry(() => getAI().models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.8-flash',
         contents: `Solution Spec Pro for ${projectName}. Source: ${context}`,
         config: { responseMimeType: "application/json" }
     }));

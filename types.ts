@@ -309,6 +309,84 @@ export interface GlossaryRequest {
   regulations?: string | null;
 }
 
+export interface GlossaryBusinessTermItem {
+  referenceId?: string;
+  name: string;
+  description: string;
+  aliasNames?: string;
+  businessLogic?: string;
+  criticalDataElement?: boolean | string;
+  examples?: string;
+  formatType?: string;
+  formatDescription?: string;
+  lifecycle?: string;
+  securityLevel?: string;
+  classifications?: string;
+  parentSubdomain: string;
+}
+
+export interface GlossarySubdomainItem {
+  name: string;
+  description: string;
+  parentDomain?: string;
+  lifecycle?: string;
+  securityLevel?: string;
+}
+
+export interface GlossaryMetricItem {
+  referenceId?: string;
+  name: string;
+  description: string;
+  aliasNames?: string;
+  businessLogic?: string;
+  criticalDataElement?: boolean | string;
+  examples?: string;
+  formatType?: string;
+  formatDescription?: string;
+  lifecycle?: string;
+  securityLevel?: string;
+  classifications?: string;
+  parentSubdomain: string;
+}
+
+export interface GlossaryDataset {
+  domain: { name: string; description: string; lifecycle?: string };
+  subdomains: GlossarySubdomainItem[];
+  businessTerms: GlossaryBusinessTermItem[];
+  metrics: GlossaryMetricItem[];
+}
+
+export interface GlossaryRequestRecord {
+  id: string; // e.g. "glos-0003-insurance"
+  glossary_id: string; // e.g. "glos-0003-insurance"
+  industry: string;
+  region?: string;
+  domain?: string;
+  subdomain?: string;
+  client_name?: string;
+  context?: string;
+  regulations?: string;
+  requirement_context?: string;
+  status: 'Completed' | 'In Progress' | 'Failed';
+  created_at: string;
+  generated_at?: string;
+  download_url?: string;
+  business_term_count: number;
+  metric_count: number;
+  output_folder_path?: string;
+  excel_path?: string;
+  blob_path?: string;
+  blob_url?: string;
+  blob_files?: Array<{
+    file_name: string;
+    source_file_name?: string;
+    source_file_path?: string;
+    blob_name?: string;
+    blob_url?: string;
+  }>;
+  data?: GlossaryDataset;
+}
+
 export interface GlossaryTerm {
   term: string;
   acronym?: string;

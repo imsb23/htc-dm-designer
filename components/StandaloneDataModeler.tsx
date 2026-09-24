@@ -139,9 +139,9 @@ const StandaloneDataModeler: React.FC<{ initialView?: string, initialData?: any 
 
     try {
       const response = await getAI().models.generateContent({
-        model: 'gemini-3-pro-preview',
+        model: 'gemini-3.8-flash',
         contents: prompt,
-        config: { systemInstruction, thinkingConfig: { thinkingBudget: 8192 }, tools: [{ googleSearch: {} }] }
+        config: { systemInstruction, tools: [{ googleSearch: {} }] }
       });
 
       const text = response.text || "";
